@@ -1,4 +1,4 @@
-# mlp-tf-node
+# simple-multilayer-perceptron
 
 Multi-Layer Perceptron implementation in Typescript and Node using the Tensorflow library
 
