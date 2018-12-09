@@ -22,3 +22,4 @@ set:
 - the learning rate (0.25)
 - the training algorithm (sgd, momentum, adam)
 - the loss function (meanSquaredError)
+- number of hidden layers (1 is the default)
