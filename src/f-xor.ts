@@ -15,12 +15,15 @@ const m = createModel({
   inputLayerShape: getInputLayerShape(inputTensor),
   outputUnits: getOutputUnits(targetTensor),
   hiddenUnits: 5,
-  outputFunction: 'sigmoid'
+  outputFunction: 'sigmoid',
+  training: 'adam',
+  numHiddenLayers: 4,
+  learningRate: 0.1
 });
 
 trainModel({
   m,
-  epochs: 200,
+  epochs: 1000,
   getInputForEpoch: _epochNum => inputTensor,
   getTargetForEpoch: _epochNum => targetTensor,
   validationSplit: 0

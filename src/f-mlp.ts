@@ -38,6 +38,12 @@ set:
 - the loss function
 */
 
+export const getInputLayerShape = (inputTensor: Tensor) => [
+  inputTensor.shape[1]
+];
+export const getOutputUnits = (targetTensor: Tensor) =>
+  targetTensor.shape[0];
+
 export interface CreateModelOptions {
   inputLayerShape: number[];
   outputUnits: number;
@@ -47,13 +53,8 @@ export interface CreateModelOptions {
   outputFunction?: string;
   lossFunction?: string;
   learningRate?: number;
+  numHiddenLayers?: number;
 }
-
-export const getInputLayerShape = (inputTensor: Tensor) => [
-  inputTensor.shape[1]
-];
-export const getOutputUnits = (targetTensor: Tensor) =>
-  targetTensor.shape[0];
 
 export const createModel = ({
   inputLayerShape,
@@ -63,25 +64,30 @@ export const createModel = ({
   hiddenFunction = 'sigmoid',
   outputFunction = 'linear',
   lossFunction = 'meanSquaredError',
-  learningRate = 0.25
+  learningRate = 0.25,
+  numHiddenLayers = 1
 }: CreateModelOptions) => {
   const inputLayer = input({
     shape: inputLayerShape
   });
-  const hiddenLayer = layers
-    .dense({
-      units: hiddenUnits,
-      activation: hiddenFunction,
-      useBias: true
-    })
-    .apply(inputLayer);
+  const hiddenLayers = [];
+  for (let i = 0; i < numHiddenLayers; i++) {
+    const applyLayer: any = i === 0 ? inputLayer : hiddenLayers[i - 1];
+    hiddenLayers[i] = layers
+      .dense({
+        units: hiddenUnits,
+        activation: hiddenFunction,
+        useBias: true
+      })
+      .apply(applyLayer);
+  }
   const outputLayer = layers
     .dense({
       units: outputUnits,
       activation: outputFunction,
       useBias: true
     })
-    .apply(hiddenLayer);
+    .apply(hiddenLayers[numHiddenLayers - 1]);
   const optimizer =
     training === 'momentum'
       ? train.momentum(learningRate, 0.9)
