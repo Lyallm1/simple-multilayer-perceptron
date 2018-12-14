@@ -71,6 +71,7 @@ export const createModel = ({
     shape: inputLayerShape
   });
   const hiddenLayers = [];
+
   for (let i = 0; i < numHiddenLayers; i++) {
     const applyLayer: any = i === 0 ? inputLayer : hiddenLayers[i - 1];
     hiddenLayers[i] = layers
@@ -92,41 +93,44 @@ export const createModel = ({
     training === 'momentum'
       ? train.momentum(learningRate, 0.9)
       : train[training](learningRate);
-  const m = model({
+  const modelInstance = model({
     inputs: inputLayer,
     outputs: outputLayer as SymbolicTensor
   });
-  m.compile({
+  modelInstance.compile({
     optimizer,
     loss: lossFunction,
     metrics: ['accuracy']
   });
-  return m;
+  return modelInstance;
 };
 
 export interface TrainModelOptions {
-  m: Model;
-  epochs: number;
+  modelInstance: Model;
+  trainingIterations: number;
   validationSplit?: number;
-  getInputForEpoch: (epochNum: number) => Tensor;
-  getTargetForEpoch: (epochNum: number) => Tensor;
+  epochs?: number;
+  getInputForTrainingIteration: (trainingIterationNum: number) => Tensor;
+  getTargetForTrainingIteration: (trainingIterationNum: number) => Tensor;
 }
 
 export const trainModel = async ({
-  m,
-  epochs,
+  modelInstance,
+  trainingIterations,
   validationSplit = 0.1,
-  getInputForEpoch,
-  getTargetForEpoch
+  epochs = 1,
+  getInputForTrainingIteration,
+  getTargetForTrainingIteration
 }: TrainModelOptions) => {
   let newValError = 1000000;
   let history = null;
-  for (let i = 0; i < epochs; i++) {
+  for (let i = 0; i < trainingIterations; i++) {
     try {
-      history = await m.fit(
-        getInputForEpoch(i),
-        getTargetForEpoch(i).transpose(),
+      history = await modelInstance.fit(
+        getInputForTrainingIteration(i),
+        getTargetForTrainingIteration(i).transpose(),
         {
+          epochs,
           validationSplit,
           shuffle: true
         }
@@ -136,7 +140,7 @@ export const trainModel = async ({
     }
     newValError = (history.history.loss as unknown) as number;
     if (i % 100 === 0) {
-      console.log('epoch: ' + i + '\nloss: ' + newValError);
+      console.log('trainingIteration: ' + i + '\nloss: ' + newValError);
     }
   }
   console.log('Training stopped ', newValError);
@@ -144,11 +148,11 @@ export const trainModel = async ({
 };
 
 export const getConfMatrixAndPrecision = (
-  m: Model,
+  modelInstance: Model,
   inputTensor: Tensor,
   targetTensor: Tensor
 ) => {
-  const outputs = round(m.predict(inputTensor) as Tensor);
+  const outputs = round(modelInstance.predict(inputTensor) as Tensor);
   const index = targetTensor.argMax(1).dataSync();
   let nClasses = targetTensor.buffer().get(index[0]) as number;
 
@@ -202,9 +206,15 @@ export const getConfMatrixAndPrecision = (
   return { confusionMatrix: cm.toTensor(), precision };
 };
 
-export const predict = ({ m, input }: { m: Model; input: TensorLike }) => {
-  const inputTensor = tensor(input);
-  const predictOut: any = m.predict(inputTensor);
+export const predict = ({
+  modelInstance,
+  inputTensorLike
+}: {
+  modelInstance: Model;
+  inputTensorLike: TensorLike;
+}) => {
+  const inputTensor = tensor(inputTensorLike);
+  const predictOut: any = modelInstance.predict(inputTensor);
   const logits = Array(predictOut.dataSync());
   console.log('Prediction: ', logits);
 
@@ -215,7 +225,7 @@ export const predict = ({ m, input }: { m: Model; input: TensorLike }) => {
 
 /*
     Early Stopping training technique
-    Receives the maximum epochs and error treshold.
+    Receives the maximum training iterations and error threshold.
     This function will train the MLP until the loss value in the
     validation set is less than the treshold which means the network
     stopped learning about the inputs and start learning about the noise
@@ -223,20 +233,20 @@ export const predict = ({ m, input }: { m: Model; input: TensorLike }) => {
   */
 
 interface EarlyStoppingTrainingOptions {
-  m: Model;
-  epochs: number;
+  modelInstance: Model;
+  trainingIterations: number;
   threshold: number;
   validationSplit: number;
-  getInputForEpoch: (epochNum: number) => Tensor;
-  getTargetForEpoch: (epochNum: number) => Tensor;
+  getInputForTrainingIteration: (trainingIterationNum: number) => Tensor;
+  getTargetForTrainingIteration: (trainingIterationNum: number) => Tensor;
 }
 export const earlyStoppingTraining = async ({
-  m,
-  epochs,
+  modelInstance,
+  trainingIterations,
   threshold,
   validationSplit = 0.1,
-  getInputForEpoch,
-  getTargetForEpoch
+  getInputForTrainingIteration,
+  getTargetForTrainingIteration
 }: EarlyStoppingTrainingOptions) => {
   let oldValError1 = 100002;
   let oldValError2 = 100001;
@@ -246,21 +256,29 @@ export const earlyStoppingTraining = async ({
   let history = null;
 
   while (
-    (count < epochs && oldValError1 - newValError > threshold) ||
+    (count < trainingIterations &&
+      oldValError1 - newValError > threshold) ||
     oldValError2 - oldValError1 > threshold
   ) {
     count++;
-    const input = getInputForEpoch(count);
-    const target = getTargetForEpoch(count);
-    history = await m.fit(input, target.transpose(), {
-      validationSplit: validationSplit,
-      shuffle: true
-    });
+    const inputTensor = getInputForTrainingIteration(count);
+    const targetTensor = getTargetForTrainingIteration(count);
+    history = await modelInstance.fit(
+      inputTensor,
+      targetTensor.transpose(),
+      {
+        validationSplit,
+        shuffle: true
+      }
+    );
     oldValError2 = oldValError1;
     oldValError1 = newValError;
     newValError = (history.history.loss as unknown) as number;
-    if (count % 100 === 0)
-      console.log('epoch: ' + count + '\nloss: ' + newValError);
+    if (count % 100 === 0) {
+      console.log(
+        'training iteration: ' + count + '\nloss: ' + newValError
+      );
+    }
   }
   console.log(
     'Training stopped ',

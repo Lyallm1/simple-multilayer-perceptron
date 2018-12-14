@@ -22,20 +22,18 @@ set:
 */
 
 export class MLPerceptron {
-  hidden_function: any;
-  output_function: any;
-  learningRate: any;
-  loss_function: any;
-  inputs: any;
-  _inputs: any;
-  targets: any;
-  _targets: any;
-  input_layer: any;
-  hidden_layer: any;
-  output_layer: any;
-  training: any;
-  model: any;
-  precision: any;
+  public hiddenFunction: any;
+  public outputFunction: any;
+  public learningRate: any;
+  public lossFunction: any;
+  public inputs: any;
+  public targets: any;
+  public inputLayer: any;
+  public hiddenLayer: any;
+  public outputLayer: any;
+  public training: any;
+  public model: any;
+  public precision: any;
 
   constructor(
     inputs: any,
@@ -47,50 +45,50 @@ export class MLPerceptron {
     lossfunction: any,
     learningRate: any
   ) {
-    this.hidden_function =
+    this.hiddenFunction =
       typeof hfunction !== 'undefined' ? hfunction : 'sigmoid';
-    this.output_function =
+    this.outputFunction =
       typeof outfunction !== 'undefined' ? outfunction : 'linear';
     this.learningRate =
       typeof learningRate !== 'undefined' ? learningRate : 0.25;
-    this.loss_function =
+    this.lossFunction =
       typeof lossfunction !== 'undefined'
         ? lossfunction
         : 'meanSquaredError';
     this.inputs = tf.tensor(inputs);
-    this._inputs = inputs;
     this.targets = tf.tensor(targets);
-    this._targets = targets;
-    this.input_layer = tf.input({ shape: [this.inputs.shape[1]] });
-    this.hidden_layer = tf.layers
+    this.inputLayer = tf.input({ shape: [this.inputs.shape[1]] });
+    this.hiddenLayer = tf.layers
       .dense({
         units: hidden,
-        activation: this.hidden_function,
+        activation: this.hiddenFunction,
         useBias: true
       })
-      .apply(this.input_layer);
-    this.output_layer = tf.layers
+      .apply(this.inputLayer);
+    this.outputLayer = tf.layers
       .dense({
         units: this.targets.shape[0],
-        activation: this.output_function,
+        activation: this.outputFunction,
         useBias: true
       })
-      .apply(this.hidden_layer);
+      .apply(this.hiddenLayer);
 
-    if (training === 'sgd')
+    if (training === 'sgd') {
       this.training = tf.train.sgd(this.learningRate);
-    else if (training === 'momentum')
+    } else if (training === 'momentum') {
       this.training = tf.train.momentum(this.learningRate, 0.9);
-    else this.training = tf.train.adam(this.learningRate);
+    } else {
+      this.training = tf.train.adam(this.learningRate);
+    }
     this.model = tf.model({
-      inputs: this.input_layer,
-      outputs: this.output_layer
+      inputs: this.inputLayer,
+      outputs: this.outputLayer
     });
 
     /* TODO: Let the loss function to be parameterized */
     this.model.compile({
       optimizer: this.training,
-      loss: this.loss_function,
+      loss: this.lossFunction,
       metrics: ['accuracy']
     });
   }
@@ -100,69 +98,76 @@ export class MLPerceptron {
     Receives the number of iterations to train.
     Uses a validationSplit of 0.25. TODO: parameterize the validationSplit
   */
-  async train(epochs: number, validationSplit: number) {
+  public async train(trainingIterations: number, validationSplit: number) {
     validationSplit =
       typeof validationSplit !== 'undefined' ? validationSplit : 0.1;
     console.log('v spli: ', validationSplit);
-    let new_val_error = 1000000;
+    let newValError = 1000000;
     let history = null;
-    for (let i = 0; i < epochs; i++) {
+    for (let i = 0; i < trainingIterations; i++) {
       history = await this.model.fit(
         this.inputs,
         this.targets.transpose(),
         { validationSplit, shuffle: true }
       );
-      new_val_error = history.history.loss;
-      if (i % 100 === 0)
-        console.log('epoch: ' + i + '\nloss: ' + new_val_error);
+      newValError = history.history.loss;
+      if (i % 100 === 0) {
+        console.log(
+          'training iterations: ' + i + '\nloss: ' + newValError
+        );
+      }
     }
-    console.log('Training stopped ', new_val_error);
+    console.log('Training stopped ', newValError);
     return history;
   }
 
   /*
     Early Stopping training technique
-    Receives the maximum epochs and error treshold.
+    Receives the maximum training iterations and error threshold.
     This function will train the MLP until the loss value in the
     validation set is less than the treshold which means the network
     stopped learning about the inputs and start learning about the noise
     in the inputs.
   */
-  async earlyStoppingTraining(
-    epochs: number,
+  public async earlyStoppingTraining(
+    trainingIterations: number,
     threshold: number,
     validationSplit: number
   ) {
     validationSplit =
       typeof validationSplit !== 'undefined' ? validationSplit : 0.1;
-    let old_val_error1 = 100002;
-    let old_val_error2 = 100001;
-    let new_val_error = 100000;
+    let oldValError1 = 100002;
+    let oldValError2 = 100001;
+    let newValError = 100000;
 
     let count = 0;
     let history = null;
 
     while (
-      (count < epochs && old_val_error1 - new_val_error > threshold) ||
-      old_val_error2 - old_val_error1 > threshold
+      (count < trainingIterations &&
+        oldValError1 - newValError > threshold) ||
+      oldValError2 - oldValError1 > threshold
     ) {
       count += 1;
       history = await this.model.fit(
         this.inputs,
         this.targets.transpose(),
-        { validationSplit: validationSplit, shuffle: true }
+        { validationSplit, shuffle: true }
       );
-      old_val_error2 = old_val_error1;
-      old_val_error1 = new_val_error;
-      new_val_error = history.history.loss;
-      if (count % 100 === 0)
-        console.log('epoch: ' + count + '\nloss: ' + new_val_error);
+      oldValError2 = oldValError1;
+      oldValError1 = newValError;
+      newValError = history.history.loss;
+      if (count % 100 === 0) {
+        console.log(
+          'training iteration: ' + count + '\nloss: ' + newValError
+        );
+      }
     }
     console.log(
       'Training stopped ',
-      new_val_error,
-      old_val_error1,
-      old_val_error2,
+      newValError,
+      oldValError1,
+      oldValError2,
       count
     );
     return history;
@@ -171,8 +176,8 @@ export class MLPerceptron {
   /*
     Feeds forward the inputs.
   */
-  predict(_input: TensorLike) {
-    const input = tf.tensor(_input);
+  public predict(inputTensorLike: TensorLike) {
+    const input = tf.tensor(inputTensorLike);
     const predictOut = this.model.predict(input);
     const logits = Array(predictOut.dataSync());
     console.log('Prediction: ', logits);
@@ -190,10 +195,10 @@ export class MLPerceptron {
 
     NOTE: Arguments must be instance of Tensor
   */
-  confMatrix(_inputs: any, _targets: any) {
-    let outputs = this.model.predict(_inputs);
-    const indice = _targets.argMax(1).dataSync();
-    let nClasses = _targets.buffer().get(indice[0]);
+  public confMatrix(inputs: any, targets: any) {
+    let outputs = this.model.predict(inputs);
+    const indice = targets.argMax(1).dataSync();
+    let nClasses = targets.buffer().get(indice[0]);
 
     if (nClasses === 1) {
       nClasses = 2;
@@ -204,12 +209,12 @@ export class MLPerceptron {
     for (let i = 0; i < nClasses; i++) {
       for (let j = 0; j < nClasses; j++) {
         const mI = tf.fill([outputs.shape[0], 1], i);
-        const mJ = tf.fill(_targets.shape, j);
+        const mJ = tf.fill(targets.shape, j);
         const a = outputs
           .toBool()
           .equal(mI.toBool())
           .toFloat();
-        const b = _targets
+        const b = targets
           .toBool()
           .equal(mJ.toBool())
           .toFloat();
