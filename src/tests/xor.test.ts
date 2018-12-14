@@ -6,7 +6,7 @@ import {
   getConfMatrixAndPrecision,
   getInputLayerShape,
   getOutputUnits
-} from '../mlp';
+} from '..';
 
 const inputTensor = tensor([[0, 0], [0, 1], [1, 0], [1, 1]]);
 const targetTensor = tensor([[0, 1, 1, 0]]);

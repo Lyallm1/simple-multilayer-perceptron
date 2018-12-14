@@ -6,7 +6,7 @@ import {
   getOutputUnits,
   earlyStoppingTraining,
   predict
-} from '../mlp';
+} from '..';
 
 const inputTensor = tensor([[0], [1], [2], [3], [4]]);
 const targetTensor = tensor([[1, 2, 3, 4, 5]]);

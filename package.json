@@ -12,6 +12,7 @@
     "typescript",
     "node"
   ],
+  "main": "dest/index.js",
   "scripts": {
     "build": "tsc",
     "test": "jest --config jestconfig.json",
