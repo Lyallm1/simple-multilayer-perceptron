@@ -1,10 +1,11 @@
 {
   "name": "simple-multilayer-perceptron",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple multi-layer perceptron implemented in a functional style with typescript and node",
   "keywords": [
     "machine learning",
     "perceptron",
+    "classifier",
     "tensorflow",
     "tensorflowjs",
     "tfjs-node",

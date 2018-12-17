@@ -1,17 +1,17 @@
 import { tensor } from '@tensorflow/tfjs';
 
 import {
-  createModel,
-  trainModel,
-  getConfMatrixAndPrecision,
+  createSmp,
+  trainSmp,
+  getSmpConfMatrixAndPrecision,
   getInputLayerShape,
   getOutputUnits
-} from '..';
+} from '../smp';
 
 const inputTensor = tensor([[0, 0], [0, 1], [1, 0], [1, 1]]);
 const targetTensor = tensor([[0, 1, 1, 0]]);
 
-const modelInstance = createModel({
+const smp = createSmp({
   inputLayerShape: getInputLayerShape(inputTensor),
   outputUnits: getOutputUnits(targetTensor),
   hiddenUnits: 5,
@@ -21,9 +21,9 @@ const modelInstance = createModel({
   learningRate: 0.1
 });
 
-test('precision', () => {
-  trainModel({
-    modelInstance,
+test('smp xor', () => {
+  trainSmp({
+    smp,
     trainingIterations: 1000,
     epochs: 2,
     getInputForTrainingIteration: (trainingIterationNum: number) =>
@@ -32,8 +32,8 @@ test('precision', () => {
       targetTensor,
     validationSplit: 0
   }).then(() => {
-    const { confusionMatrix, precision } = getConfMatrixAndPrecision(
-      modelInstance,
+    const { confusionMatrix, precision } = getSmpConfMatrixAndPrecision(
+      smp,
       inputTensor,
       targetTensor
     );
