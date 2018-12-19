@@ -14,28 +14,41 @@ import {
 import '@tensorflow/tfjs-node';
 
 interface CreateClassifierOptions {
+  inputShape: any[];
   learningRate?: number;
   hiddenUnits?: number;
-  inputShape: any[];
+  numHiddenLayers?: number;
+  hiddenActivationFunction?: string;
 }
 
 export const createClassifier = ({
+  inputShape,
   learningRate = 0.25,
   hiddenUnits = 16,
-  inputShape
+  numHiddenLayers = 1,
+  hiddenActivationFunction = 'tanh'
 }: CreateClassifierOptions) => {
+  if (numHiddenLayers < 1) {
+    throw new Error('numHiddenLayers must be >= 1');
+  }
   const classifierModel = sequential();
   const hidden = layers.dense({
     units: hiddenUnits,
     inputShape,
-    activation: 'sigmoid'
+    activation: hiddenActivationFunction
   });
-
+  classifierModel.add(hidden);
+  for (let i = 1; i < numHiddenLayers; i++) {
+    const extraHidden = layers.dense({
+      units: hiddenUnits,
+      activation: hiddenActivationFunction
+    });
+    classifierModel.add(extraHidden);
+  }
   const output = layers.dense({
     units: 9,
     activation: 'softmax'
   });
-  classifierModel.add(hidden);
   classifierModel.add(output);
 
   const optimizer = train.sgd(learningRate);

@@ -1,6 +1,6 @@
 {
   "name": "simple-multilayer-perceptron",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Simple multi-layer perceptron implemented in a functional style with typescript and node",
   "keywords": [
     "machine learning",
@@ -29,7 +29,7 @@
   "license": "ISC",
   "dependencies": {
     "@tensorflow/tfjs": "^0.14.1",
-    "@tensorflow/tfjs-node": "^0.1.21"
+    "@tensorflow/tfjs-node": "^0.2.1"
   },
   "devDependencies": {
     "@types/jest": "^23.3.10",
@@ -38,7 +38,7 @@
     "prettier": "^1.15.3",
     "ts-jest": "^23.10.5",
     "ts-node": "^7.0.1",
-    "tslint": "^5.11.0",
+    "tslint": "^5.12.0",
     "tslint-config-prettier": "^1.17.0",
     "typescript": "^3.2.2"
   },
