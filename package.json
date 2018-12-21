@@ -1,6 +1,6 @@
 {
   "name": "simple-multilayer-perceptron",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Simple multi-layer perceptron implemented in a functional style with typescript and node",
   "keywords": [
     "machine learning",

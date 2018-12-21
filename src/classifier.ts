@@ -17,6 +17,7 @@ interface CreateClassifierOptions {
   inputShape: any[];
   learningRate?: number;
   hiddenUnits?: number;
+  outputUnits: number;
   numHiddenLayers?: number;
   hiddenActivationFunction?: string;
 }
@@ -25,6 +26,7 @@ export const createClassifier = ({
   inputShape,
   learningRate = 0.25,
   hiddenUnits = 16,
+  outputUnits,
   numHiddenLayers = 1,
   hiddenActivationFunction = 'tanh'
 }: CreateClassifierOptions) => {
@@ -46,7 +48,7 @@ export const createClassifier = ({
     classifierModel.add(extraHidden);
   }
   const output = layers.dense({
-    units: 9,
+    units: outputUnits,
     activation: 'softmax'
   });
   classifierModel.add(output);
@@ -65,6 +67,7 @@ export const createClassifier = ({
 interface TrainClassifierOptions {
   classifierModel: Sequential;
   inputs: any[];
+  outputUnits: number;
   labels: number[];
   epochs?: number;
 }
@@ -72,6 +75,7 @@ interface TrainClassifierOptions {
 export async function trainClassifier({
   classifierModel,
   inputs,
+  outputUnits,
   labels,
   epochs = 100
 }: TrainClassifierOptions) {
@@ -79,7 +83,7 @@ export async function trainClassifier({
 
   const labelsTensor = tensor1d(labels, 'int32');
 
-  const ys = oneHot(labelsTensor, 9).cast('float32');
+  const ys = oneHot(labelsTensor, outputUnits).cast('float32');
   labelsTensor.dispose();
 
   // This is leaking https://github.com/tensorflow/tfjs/issues/457

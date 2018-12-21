@@ -31,14 +31,16 @@ test('smp early stopping prediction', () => {
     }
 
     const classifierModel = createClassifier({
-      inputShape: [3]
+      inputShape: [3],
+      outputUnits: labelList.length
     });
 
     await trainClassifier({
       classifierModel,
       inputs: colors,
+      outputUnits: labelList.length,
       labels,
-      epochs: 10
+      epochs: 50
     });
 
     const unormalizedInput = [255, 21, 60];
