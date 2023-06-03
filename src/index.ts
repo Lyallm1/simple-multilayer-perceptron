@@ -1,2 +1,2 @@
-export * from './smp';
-export * from './classifier';
+export * from './smp.js';
+export * from './classifier.js';

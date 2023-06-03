@@ -2,18 +2,9 @@
   "name": "simple-multilayer-perceptron",
   "version": "1.0.3",
   "description": "Simple multi-layer perceptron implemented in a functional style with typescript and node",
-  "keywords": [
-    "machine learning",
-    "perceptron",
-    "classifier",
-    "tensorflow",
-    "tensorflowjs",
-    "tfjs-node",
-    "functional",
-    "typescript",
-    "node"
-  ],
+  "keywords": ["machine learning", "perceptron", "classifier", "tensorflow", "tensorflowjs", "tfjs-node", "functional", "typescript", "node"],
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "test": "jest --config jestconfig.json",
@@ -41,10 +32,5 @@
     "tslint": "^5.12.0",
     "tslint-config-prettier": "^1.17.0",
     "typescript": "^3.2.2"
-  },
-  "prettier": {
-    "singleQuote": true,
-    "printWidth": 75,
-    "tabWidth": 2
   }
 }

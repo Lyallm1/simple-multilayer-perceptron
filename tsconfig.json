@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "NodeNext",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "target": "es6",
-    "noImplicitAny": true,
+    "target": "ESNext",
+    "noImplicitAny": false,
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "dist",
@@ -13,6 +13,5 @@
       "*": ["node_modules/*"]
     },
     "lib": ["es2015", "dom"]
-  },
-  "include": ["src/**/*"]
+  }, "include": ["src/**/*"]
 }
